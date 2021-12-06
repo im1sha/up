@@ -1,16 +1,40 @@
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
 
-var x = canvas.width / 2;
-var y = canvas.height - 30;
-var dx = 2;
-var dy = -2;
-const paddleDx = 7;
-const ballRadius = 10;
+class Ball 
+{
+    constructor(canvasWidth, canvasHeight) {
+        {
+            if (canvasWidth === undefined || canvasWidth === null) throw new Error();
+            if (canvasHeight === undefined || canvasHeight === null) throw new Error(); 
+        }
 
-const paddleHeight = 10;
-const paddleWidth = 75;
-var paddleX = (canvas.width - paddleWidth) / 2;
+        this.x = canvasWidth / 2;
+        this.y = canvasHeight - 30;
+        this.dx = 2;
+        this.dy = -2;
+    }
+
+    get radius() { return 10; }
+}
+
+class Paddle
+{
+    constructor(canvasWidth) {
+        {
+            if (canvasWidth === undefined || canvasWidth === null) throw new Error(); 
+        }
+        
+        this.x = (canvasWidth - 75) / 2;
+    }
+
+    get height() { return 10; }
+    get width() { return 75; }
+    get dx() { return 7; }
+}
+
+const ball = new Ball(canvas.width, canvas.height)
+const paddle = new Paddle(canvas.width);
 
 var rightPressed = false;
 var leftPressed = false;
@@ -23,17 +47,17 @@ const interval = setInterval(draw, 10);
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    drawPaddle(paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight);
-    drawBall(x, y, ballRadius);
+    drawpaddle(paddle.x, canvas.height-paddle.height, paddle.width, paddle.height);
+    drawBall(ball.x, ball.y, ball.radius);
 
-    if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
-        dx = -dx;
+    if (ball.x + ball.dx > canvas.width - ball.radius || ball.x + ball.dx < ball.radius) {
+        ball.dx = -ball.dx;
     }
-    if (y + dy < ballRadius) {
-        dy = -dy;
-    } else if (y + dy > canvas.height - ballRadius) {
-        if (x > paddleX && x < paddleX + paddleWidth) {
-            dy = -dy;
+    if (ball.y + ball.dy < ball.radius) {
+        ball.dy = -ball.dy;
+    } else if (ball.y + ball.dy > canvas.height - ball.radius) {
+        if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
+            ball.dy = -ball.dy;
         }
         else {
             alert("game over");
@@ -43,20 +67,20 @@ function draw() {
     }
 
     if (rightPressed && !leftPressed) {
-        paddleX += paddleDx;
-        if (paddleX + paddleWidth > canvas.width) {
-            paddleX = canvas.width - paddleWidth;
+        paddle.x += paddle.dx;
+        if (paddle.x + paddle.width > canvas.width) {
+            paddle.x = canvas.width - paddle.width;
         }
     }
     else if (leftPressed && !rightPressed) {
-        paddleX -= paddleDx;
-        if (paddleX < 0) {
-            paddleX = 0;
+        paddle.x -= paddle.dx;
+        if (paddle.x < 0) {
+            paddle.x = 0;
         }
     }
 
-    x += dx;
-    y += dy;
+    ball.x += ball.dx;
+    ball.y += ball.dy;
 }
 
 function drawBall(x, y, ballRadius) {
@@ -67,7 +91,7 @@ function drawBall(x, y, ballRadius) {
     ctx.closePath();
 }
 
-function drawPaddle(x, y, width, height) {
+function drawpaddle(x, y, width, height) {
     ctx.beginPath();
     ctx.rect(x, y, width, height);
     ctx.fillStyle = "#0095DD";
