@@ -1,40 +1,59 @@
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
 
-class Ball 
-{
-    constructor(canvasWidth, canvasHeight) {
+class Ball {
+    constructor(canvas) {
         {
-            if (canvasWidth === undefined || canvasWidth === null) throw new Error();
-            if (canvasHeight === undefined || canvasHeight === null) throw new Error(); 
+            if (canvas === undefined || canvas === null) throw new Error();
         }
 
-        this.x = canvasWidth / 2;
-        this.y = canvasHeight - 30;
+        this._ctx = canvas.getContext("2d");
+        this.x = canvas.width / 2;
+        this.y = canvas.height - 30;
         this.dx = 2;
         this.dy = -2;
     }
 
     get radius() { return 10; }
+
+    draw() {
+        this._ctx.beginPath();
+        this._ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+        this._ctx.fillStyle = "#FF0000";
+        this._ctx.fill(); 
+        this._ctx.closePath();
+    }
 }
 
-class Paddle
-{
-    constructor(canvasWidth) {
+class Paddle {
+    constructor(canvas) {
         {
-            if (canvasWidth === undefined || canvasWidth === null) throw new Error(); 
+            if (canvas === undefined || canvas === null) throw new Error(); 
         }
         
-        this.x = (canvasWidth - 75) / 2;
+        this.x = (canvas.width - 75) / 2;
+        this._ctx = canvas.getContext("2d");
+        this._canvas = canvas;
     }
 
     get height() { return 10; }
     get width() { return 75; }
     get dx() { return 7; }
+
+    draw() {
+        this._ctx.beginPath();
+        this._ctx.rect(this.x,
+                       this._canvas.height - this.height,
+                       this.width,
+                       this.height);
+        this._ctx.fillStyle = "#0095DD";
+        this._ctx.fill();
+        this._ctx.closePath();
+    }
 }
 
-const ball = new Ball(canvas.width, canvas.height)
-const paddle = new Paddle(canvas.width);
+const ball = new Ball(canvas);
+const paddle = new Paddle(canvas);
 
 var rightPressed = false;
 var leftPressed = false;
@@ -47,8 +66,8 @@ const interval = setInterval(draw, 10);
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    drawpaddle(paddle.x, canvas.height-paddle.height, paddle.width, paddle.height);
-    drawBall(ball.x, ball.y, ball.radius);
+    paddle.draw();
+    ball.draw();
 
     if (ball.x + ball.dx > canvas.width - ball.radius || ball.x + ball.dx < ball.radius) {
         ball.dx = -ball.dx;
@@ -81,22 +100,6 @@ function draw() {
 
     ball.x += ball.dx;
     ball.y += ball.dy;
-}
-
-function drawBall(x, y, ballRadius) {
-    ctx.beginPath();
-    ctx.arc(x, y, ballRadius, 0, Math.PI*2);
-    ctx.fillStyle = "#FF0000";
-    ctx.fill(); 
-    ctx.closePath();
-}
-
-function drawpaddle(x, y, width, height) {
-    ctx.beginPath();
-    ctx.rect(x, y, width, height);
-    ctx.fillStyle = "#0095DD";
-    ctx.fill();
-    ctx.closePath();
 }
 
 function keyDownHandler(e) {
