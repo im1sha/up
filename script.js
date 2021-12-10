@@ -52,11 +52,42 @@ class Paddle {
     }
 }
 
+class Brick {
+    constructor(ctx, x, y) {
+        this.x = x;
+        this.y = y;
+        this._ctx = ctx;
+    }
+
+    draw() {
+        this._ctx.beginPath();
+        this._ctx.rect(this.x, this.y, Brick.width, Brick.height);
+        this._ctx.fillStyle = "#0095DD";
+        this._ctx.fill();
+        this._ctx.closePath();
+    }
+
+    static get width() { return 75; }
+    static get height() { return 20; }
+    static get padding() { return 10; }
+}
+
 const ball = new Ball(canvas);
 const paddle = new Paddle(canvas);
 
-var rightPressed = false;
-var leftPressed = false;
+const brickCount = { 'row': 3, 'column': 5, };
+const brickOffset = { 'top' : 30, 'left' : 30, }; 
+const bricks = Array.from(
+    {length: brickCount.column},
+    (_, c) => Array.from(
+        {length: brickCount.row},
+        (_, r) => new Brick(
+            ctx,
+            (c * (Brick.width + Brick.padding)) + brickOffset.left,
+            (r * (Brick.height + Brick.padding)) + brickOffset.top)));
+
+let rightPressed = false;
+let leftPressed = false;
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
@@ -65,6 +96,9 @@ const interval = setInterval(draw, 10);
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    bricks.forEach((arr, i, fullArray) =>
+        arr.forEach((item, j, arr) => item.draw()));
 
     paddle.draw();
     ball.draw();
