@@ -2,12 +2,15 @@ const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
 
 class Ball {
-    constructor(canvas) {
+    constructor(canvas, paddle) {
         {
             if (canvas === undefined || canvas === null) throw new Error();
+            if (paddle === undefined || paddle === null) throw new Error();
         }
 
         this._ctx = canvas.getContext("2d");
+        this._canvas = canvas;
+        this._paddle = paddle;
         this.x = canvas.width / 2;
         this.y = canvas.height - 30;
         this.dx = 2;
@@ -22,6 +25,57 @@ class Ball {
         this._ctx.fillStyle = "#FF0000";
         this._ctx.fill(); 
         this._ctx.closePath();
+    }
+
+    move() {
+        this.x += this.dx;
+        this.y += this.dy;
+    }
+
+    reverseDX() {
+        this.dx = -this.dx;
+    }
+
+    reverseDY() {
+        this.dy = -this.dy;
+    }
+
+    isHorizontalCollision() {
+        if (this.x + this.dx > this._canvas.width - this.radius){
+            return true;
+        }
+        else if (this.x + this.dx < this.radius) {
+            return true;
+        }
+        return false;
+    }
+
+    isCeilCollision() {   
+        if (this.y + this.dy < this.radius) {
+            return true;
+        }
+        return false;
+    }
+
+    isBottomCollision() {
+        if (this.y + this.dy > this._canvas.height - this.radius) {
+            return true;
+        }
+        return false;
+    }
+
+    isUncatched() {
+        if (this.isBottomCollision() === true) {
+            if (this.x > this._paddle.x && this.x < this._paddle.x + this._paddle.width) {
+                return false;
+            }
+            else {
+                return true; // out of bounds
+            }
+        }
+        else {
+            return false;
+        }
     }
 }
 
@@ -72,8 +126,8 @@ class Brick {
     static get padding() { return 10; }
 }
 
-const ball = new Ball(canvas);
 const paddle = new Paddle(canvas);
+const ball = new Ball(canvas, paddle);
 
 const brickCount = { 'row': 3, 'column': 5, };
 const brickOffset = { 'top' : 30, 'left' : 30, }; 
@@ -92,9 +146,9 @@ let leftPressed = false;
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 
-const interval = setInterval(draw, 10);
+const interval = setInterval(main, 10);
 
-function draw() {
+function main() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     bricks.forEach((arr, i, fullArray) =>
@@ -103,20 +157,19 @@ function draw() {
     paddle.draw();
     ball.draw();
 
-    if (ball.x + ball.dx > canvas.width - ball.radius || ball.x + ball.dx < ball.radius) {
-        ball.dx = -ball.dx;
+    if (ball.isHorizontalCollision() === true) {
+        ball.reverseDX();
     }
-    if (ball.y + ball.dy < ball.radius) {
-        ball.dy = -ball.dy;
-    } else if (ball.y + ball.dy > canvas.height - ball.radius) {
-        if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
-            ball.dy = -ball.dy;
+
+    if (ball.isCeilCollision() === true) {
+        ball.reverseDY();
+    }
+    else if (ball.isBottomCollision() === true) {
+        if (ball.isUncatched() === true) {
+            gameOver();
         }
-        else {
-            alert("game over");
-            document.location.reload();
-            clearInterval(interval);
-        }
+
+        ball.reverseDY();
     }
 
     if (rightPressed && !leftPressed) {
@@ -132,24 +185,29 @@ function draw() {
         }
     }
 
-    ball.x += ball.dx;
-    ball.y += ball.dy;
+    ball.move();
 }
 
 function keyDownHandler(e) {
-    if(e.key == "Right" || e.key == "ArrowRight") {
+    if (e.key === "Right" || e.key === "ArrowRight") {
         rightPressed = true;
     }
-    else if(e.key == "Left" || e.key == "ArrowLeft") {
+    else if (e.key === "Left" || e.key === "ArrowLeft") {
         leftPressed = true;
     }
 }
 
 function keyUpHandler(e) {
-    if(e.key == "Right" || e.key == "ArrowRight") {
+    if (e.key === "Right" || e.key === "ArrowRight") {
         rightPressed = false;
     }
-    else if(e.key == "Left" || e.key == "ArrowLeft") {
+    else if (e.key === "Left" || e.key === "ArrowLeft") {
         leftPressed = false;
     }
+}
+
+function gameOver() {
+    alert("game over");
+    document.location.reload();
+    clearInterval(interval);
 }
