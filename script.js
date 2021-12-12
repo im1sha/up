@@ -63,29 +63,16 @@ class Ball {
         }
         return false;
     }
-
-    isUncatched() {
-        if (this.isBottomCollision() === true) {
-            if (this.x > this._paddle.x && this.x < this._paddle.x + this._paddle.width) {
-                return false;
-            }
-            else {
-                return true; // out of bounds
-            }
-        }
-        else {
-            return false;
-        }
-    }
 }
 
 class Paddle {
-    constructor(canvas) {
+    constructor(canvas, x, y) {
         {
             if (canvas === undefined || canvas === null) throw new Error(); 
         }
         
-        this.x = (canvas.width - 75) / 2;
+        this.x = x;
+        this.y = y;
         this._ctx = canvas.getContext("2d");
         this._canvas = canvas;
     }
@@ -97,48 +84,68 @@ class Paddle {
     draw() {
         this._ctx.beginPath();
         this._ctx.rect(this.x,
-                       this._canvas.height - this.height,
+                       this.y,
                        this.width,
                        this.height);
         this._ctx.fillStyle = "#0095DD";
         this._ctx.fill();
         this._ctx.closePath();
     }
+
+    isCollision(ball) {
+        return collides(ball, this);
+    }
+
+    static get defaultHeight() { return 10; }
 }
 
 class Brick {
-    constructor(ctx, x, y) {
+    constructor(ctx, x, y, width, height) {
         this.x = x;
         this.y = y;
+        this._width = width;
+        this._height = height; 
         this._ctx = ctx;
     }
 
+    get width() { return this._width; }
+    get height() { return this._height; }
+
     draw() {
         this._ctx.beginPath();
-        this._ctx.rect(this.x, this.y, Brick.width, Brick.height);
+        this._ctx.rect(this.x, this.y, this.width, this.height);
         this._ctx.fillStyle = "#0095DD";
         this._ctx.fill();
         this._ctx.closePath();
     }
 
-    static get width() { return 75; }
-    static get height() { return 20; }
-    static get padding() { return 10; }
+    isCollision(ball) {
+        return collides(ball, this);
+    }
+
+    static get defaultWidth() { return 75; }
+    static get defaultHeight() { return 20; }
+    static get defaultPadding() { return 10; }
 }
 
-const paddle = new Paddle(canvas);
-const ball = new Ball(canvas, paddle);
+const paddle = new Paddle(canvas, 
+                          (canvas.width - 75) / 2,
+                          canvas.height - Paddle.defaultHeight);
 
 const brickCount = { 'row': 3, 'column': 5, };
 const brickOffset = { 'top' : 30, 'left' : 30, }; 
 const bricks = Array.from(
-    {length: brickCount.column},
+    { length: brickCount.column },
     (_, c) => Array.from(
-        {length: brickCount.row},
+        { length: brickCount.row },
         (_, r) => new Brick(
             ctx,
-            (c * (Brick.width + Brick.padding)) + brickOffset.left,
-            (r * (Brick.height + Brick.padding)) + brickOffset.top)));
+            (c * (Brick.defaultWidth + Brick.defaultPadding)) + brickOffset.left,
+            (r * (Brick.defaultHeight + Brick.defaultPadding)) + brickOffset.top,
+            Brick.defaultWidth,
+            Brick.defaultHeight)));
+
+const ball = new Ball(canvas, paddle);
 
 let rightPressed = false;
 let leftPressed = false;
@@ -151,34 +158,37 @@ const interval = setInterval(main, 10);
 function main() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    bricks.forEach((arr, i, fullArray) =>
-        arr.forEach((item, j, arr) => item.draw()));
+    bricks.flat().forEach(b => b.draw());
 
     paddle.draw();
     ball.draw();
 
+    if (bricks.flat().some(b => b.isCollision(ball)) === true) {
+        ball.reverseDY();
+    }
+    
+    if (paddle.isCollision(ball) === true) {
+        ball.reverseDY();
+    }
+    
     if (ball.isHorizontalCollision() === true) {
         ball.reverseDX();
     }
-
+    
     if (ball.isCeilCollision() === true) {
         ball.reverseDY();
     }
     else if (ball.isBottomCollision() === true) {
-        if (ball.isUncatched() === true) {
-            gameOver();
-        }
-
-        ball.reverseDY();
+        gameOver();
     }
 
-    if (rightPressed && !leftPressed) {
+    if (rightPressed === true && leftPressed === false) {
         paddle.x += paddle.dx;
         if (paddle.x + paddle.width > canvas.width) {
             paddle.x = canvas.width - paddle.width;
         }
     }
-    else if (leftPressed && !rightPressed) {
+    else if (leftPressed === true && rightPressed === false) {
         paddle.x -= paddle.dx;
         if (paddle.x < 0) {
             paddle.x = 0;
@@ -210,4 +220,20 @@ function gameOver() {
     alert("game over");
     document.location.reload();
     clearInterval(interval);
+}
+
+function collides(circle, rect){
+    var distX = Math.abs(circle.x - rect.x - rect.width / 2);
+    var distY = Math.abs(circle.y - rect.y - rect.height / 2);
+
+    if (distX > (rect.width / 2 + circle.radius)) { return false; }
+    if (distY > (rect.height / 2 + circle.radius)) { return false; }
+
+    if (distX <= (rect.width / 2)) { return true; } 
+    if (distY <= (rect.height / 2)) { return true; }
+
+    var dx = distX - rect.width / 2;
+    var dy = distY - rect.height / 2;
+    const collide = (dx * dx + dy * dy <= (circle.radius ** 2));
+    return collide;
 }
