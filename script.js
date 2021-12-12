@@ -40,8 +40,8 @@ class Ball {
         this.dy = -this.dy;
     }
 
-    isHorizontalCollision() {
-        if (this.x + this.dx > this._canvas.width - this.radius){
+    hasHorizontalCollision() {
+        if (this.x + this.dx > this._canvas.width - this.radius) {
             return true;
         }
         else if (this.x + this.dx < this.radius) {
@@ -50,14 +50,14 @@ class Ball {
         return false;
     }
 
-    isCeilCollision() {   
+    hasCeilCollision() {   
         if (this.y + this.dy < this.radius) {
             return true;
         }
         return false;
     }
 
-    isBottomCollision() {
+    hasBottomCollision() {
         if (this.y + this.dy > this._canvas.height - this.radius) {
             return true;
         }
@@ -92,7 +92,7 @@ class Paddle {
         this._ctx.closePath();
     }
 
-    isCollision(ball) {
+    hasCollision(ball) {
         return collides(ball, this);
     }
 
@@ -119,7 +119,7 @@ class Brick {
         this._ctx.closePath();
     }
 
-    isCollision(ball) {
+    hasCollision(ball) {
         return collides(ball, this);
     }
 
@@ -163,22 +163,22 @@ function main() {
     paddle.draw();
     ball.draw();
 
-    if (bricks.flat().some(b => b.isCollision(ball)) === true) {
+    if (bricks.flat().some(b => b.hasCollision(ball)) === true) {
         ball.reverseDY();
     }
     
-    if (paddle.isCollision(ball) === true) {
+    if (paddle.hasCollision(ball) === true) {
         ball.reverseDY();
     }
     
-    if (ball.isHorizontalCollision() === true) {
+    if (ball.hasHorizontalCollision() === true) {
         ball.reverseDX();
     }
     
-    if (ball.isCeilCollision() === true) {
+    if (ball.hasCeilCollision() === true) {
         ball.reverseDY();
     }
-    else if (ball.isBottomCollision() === true) {
+    else if (ball.hasBottomCollision() === true) {
         gameOver();
     }
 
