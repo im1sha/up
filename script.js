@@ -2,15 +2,13 @@ const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
 
 class Ball {
-    constructor(canvas, paddle) {
+    constructor(canvas) {
         {
             if (canvas === undefined || canvas === null) throw new Error();
-            if (paddle === undefined || paddle === null) throw new Error();
         }
 
         this._ctx = canvas.getContext("2d");
         this._canvas = canvas;
-        this._paddle = paddle;
         this.x = canvas.width / 2;
         this.y = canvas.height - 30;
         this.dx = 2;
@@ -38,27 +36,39 @@ class Ball {
 
     reverseDY() {
         this.dy = -this.dy;
+    }   
+}
+
+class OuterBound {
+    constructor(ball, canvas) {
+        {
+            if (ball === undefined || ball === null) throw new Error();
+            if (canvas === undefined || canvas === null) throw new Error();
+        }
+
+        this._ball = ball;
+        this._canvas = canvas;
     }
 
     hasHorizontalCollision() {
-        if (this.x + this.dx > this._canvas.width - this.radius) {
+        if (this._ball.x >= this._canvas.width - this._ball.radius) {
             return true;
         }
-        else if (this.x + this.dx < this.radius) {
+        else if (this._ball.x <= this._ball.radius) {
             return true;
         }
         return false;
     }
 
     hasCeilCollision() {   
-        if (this.y + this.dy < this.radius) {
+        if (this._ball.y <= this._ball.radius) {
             return true;
         }
         return false;
     }
 
     hasBottomCollision() {
-        if (this.y + this.dy > this._canvas.height - this.radius) {
+        if (this._ball.y >= this._canvas.height - this._ball.radius) {
             return true;
         }
         return false;
@@ -146,6 +156,7 @@ const bricks = Array.from(
             Brick.defaultHeight)));
 
 const ball = new Ball(canvas, paddle);
+const outerBound = new OuterBound(ball, canvas);
 
 let rightPressed = false;
 let leftPressed = false;
@@ -171,14 +182,14 @@ function main() {
         ball.reverseDY();
     }
     
-    if (ball.hasHorizontalCollision() === true) {
+    if (outerBound.hasHorizontalCollision() === true) {
         ball.reverseDX();
     }
     
-    if (ball.hasCeilCollision() === true) {
+    if (outerBound.hasCeilCollision() === true) {
         ball.reverseDY();
     }
-    else if (ball.hasBottomCollision() === true) {
+    else if (outerBound.hasBottomCollision() === true) {
         gameOver();
     }
 
