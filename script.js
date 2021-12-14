@@ -155,7 +155,7 @@ const bricks = Array.from(
             Brick.defaultWidth,
             Brick.defaultHeight)));
 
-const ball = new Ball(canvas, paddle);
+const ball = new Ball(canvas);
 const outerBound = new OuterBound(ball, canvas);
 
 let rightPressed = false;
