@@ -244,10 +244,10 @@ function gameOver() {
 
 function collides(circle, rect) {  
     const cases = [
-        new Case(circle.radius, circle.y, circle.x, rect.x, rect.y, rect.y + rect.height),
-        new Case(circle.radius, circle.y, circle.x, rect.x + rect.width, rect.y, rect.y + rect.height),
-        new Case(circle.radius, circle.x, circle.y, rect.y, rect.x, rect.x + rect.width),
-        new Case(circle.radius, circle.x, circle.y, rect.y + rect.height, rect.x, rect.x + rect.width),
+        new CollisionCase(circle.radius, circle.y, circle.x, rect.x, rect.y, rect.y + rect.height),
+        new CollisionCase(circle.radius, circle.y, circle.x, rect.x + rect.width, rect.y, rect.y + rect.height),
+        new CollisionCase(circle.radius, circle.x, circle.y, rect.y, rect.x, rect.x + rect.width),
+        new CollisionCase(circle.radius, circle.x, circle.y, rect.y + rect.height, rect.x, rect.x + rect.width),
     ];
     
     return cases.some((c, i, _) => { 
@@ -271,7 +271,7 @@ function collides(circle, rect) {
     }
 }
 
-class Case {
+class CollisionCase {
     constructor(radius, axis1Center, axis2Center, axis2Coordinate, axis1Min, axis1Max) {
         {
             if (radius === undefined || radius === null) throw new Error(); 
