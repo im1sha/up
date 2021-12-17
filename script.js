@@ -79,6 +79,8 @@ class Paddle {
     constructor(canvas, x, y) {
         {
             if (canvas === undefined || canvas === null) throw new Error(); 
+            if (x === undefined || x === null) throw new Error(); 
+            if (y === undefined || y === null) throw new Error(); 
         }
         
         this.x = x;
@@ -111,6 +113,13 @@ class Paddle {
 
 class Brick {
     constructor(ctx, x, y, width, height) {
+        {
+            if (ctx === undefined || ctx === null) throw new Error(); 
+            if (x === undefined || x === null) throw new Error(); 
+            if (y === undefined || y === null) throw new Error(); 
+            if (width === undefined || width === null) throw new Error(); 
+            if (height === undefined || height === null) throw new Error(); 
+        }
         this.x = x;
         this.y = y;
         this._width = width;
@@ -247,7 +256,7 @@ function collides(circle, rect) {
         if (result === true) { console.log(c.toString()); }
         return result;
     });
-    
+
     function getIntersection(r, asix1Center, asix2Center, asix2Coordinate) {
         return Math.sqrt(r ** 2 - (asix2Coordinate - asix2Center) ** 2) + asix1Center;
     }   
