@@ -87,7 +87,7 @@ class Paddle {
         this._canvas = canvas;
     }
 
-    get height() { return 10; }
+    get height() { return Paddle.defaultHeight; }
     get width() { return 75; }
     get dx() { return 7; }
 
@@ -233,18 +233,50 @@ function gameOver() {
     clearInterval(interval);
 }
 
-function collides(circle, rect){
-    var distX = Math.abs(circle.x - rect.x - rect.width / 2);
-    var distY = Math.abs(circle.y - rect.y - rect.height / 2);
+function collides(circle, rect) {  
+    const cases = [
+        new Case(circle.radius, circle.y, circle.x, rect.x, rect.y, rect.y + rect.height),
+        new Case(circle.radius, circle.y, circle.x, rect.x + rect.width, rect.y, rect.y + rect.height),
+        new Case(circle.radius, circle.x, circle.y, rect.y, rect.x, rect.x + rect.width),
+        new Case(circle.radius, circle.x, circle.y, rect.y + rect.height, rect.x, rect.x + rect.width),
+    ];
+    
+    return cases.some((c, i, _) => { 
+        const intersection = getIntersection(c.radius, c.axis1Center, c.axis2Center, c.axis2Coordinate);
+        const result = intersection >= c.axis1Min && intersection <= c.axis1Max;
+        if (result === true) { console.log(c.toString()); }
+        return result;
+    });
+    
+    function getIntersection(r, asix1Center, asix2Center, asix2Coordinate) {
+        return Math.sqrt(r ** 2 - (asix2Coordinate - asix2Center) ** 2) + asix1Center;
+    }   
+}
 
-    if (distX > (rect.width / 2 + circle.radius)) { return false; }
-    if (distY > (rect.height / 2 + circle.radius)) { return false; }
+class Case {
+    constructor(radius, axis1Center, axis2Center, axis2Coordinate, axis1Min, axis1Max) {
+        {
+            if (radius === undefined || radius === null) throw new Error(); 
+            if (axis1Center === undefined || axis1Center === null) throw new Error(); 
+            if (axis2Center === undefined || axis2Center === null) throw new Error(); 
+            if (axis2Coordinate === undefined || axis2Coordinate === null) throw new Error(); 
+            if (axis1Min === undefined || axis1Min === null) throw new Error(); 
+            if (axis1Max === undefined || axis1Max === null) throw new Error(); 
+        }
+        this.radius = radius;
+        this.axis1Center = axis1Center;
+        this.axis2Center = axis2Center;
+        this.axis2Coordinate = axis2Coordinate;
+        this.axis1Min = axis1Min;
+        this.axis1Max = axis1Max;
+    }
 
-    if (distX <= (rect.width / 2)) { return true; } 
-    if (distY <= (rect.height / 2)) { return true; }
-
-    var dx = distX - rect.width / 2;
-    var dy = distY - rect.height / 2;
-    const collide = (dx * dx + dy * dy <= (circle.radius ** 2));
-    return collide;
+    toString() {
+        return 'R: ' + this.radius +
+            ', a1c: ' + this.axis1Center +
+            ', a2c: ' + this.axis2Center +
+            ', a2: ' + this.axis2Coordinate +
+            ', a1min: ' + this.axis1Min +
+            ', a1max: ' + this.axis1Max; 
+    }
 }
