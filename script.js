@@ -36,7 +36,23 @@ class Ball {
 
     reverseDY() {
         this.dy = -this.dy;
-    }   
+    }
+
+    positiveDX() {
+        this.dx = Math.abs(this.dx);
+    }
+
+    negativeDX() {
+        this.dx = -Math.abs(this.dx);
+    }
+
+    positiveDY() {
+        this.dy = Math.abs(this.dy);
+    } 
+    
+    negativeDY() {
+        this.dy = -Math.abs(this.dy)
+    }
 }
 
 class OuterBound {
@@ -50,11 +66,15 @@ class OuterBound {
         this._canvas = canvas;
     }
 
-    hasHorizontalCollision() {
+    hasRightWallCollision() {
         if (this._ball.x >= this._canvas.width - this._ball.radius) {
             return true;
-        }
-        else if (this._ball.x <= this._ball.radius) {
+        }       
+        return false;
+    }
+
+    hasLeftWallCollision() {
+        if (this._ball.x <= this._ball.radius) {
             return true;
         }
         return false;
@@ -73,42 +93,6 @@ class OuterBound {
         }
         return false;
     }
-}
-
-class Paddle {
-    constructor(canvas, x, y) {
-        {
-            if (canvas === undefined || canvas === null) throw new Error(); 
-            if (x === undefined || x === null) throw new Error(); 
-            if (y === undefined || y === null) throw new Error(); 
-        }
-        
-        this.x = x;
-        this.y = y;
-        this._ctx = canvas.getContext("2d");
-        this._canvas = canvas;
-    }
-
-    get height() { return Paddle.defaultHeight; }
-    get width() { return 75; }
-    get dx() { return 7; }
-
-    draw() {
-        this._ctx.beginPath();
-        this._ctx.rect(this.x,
-                       this.y,
-                       this.width,
-                       this.height);
-        this._ctx.fillStyle = "#0095DD";
-        this._ctx.fill();
-        this._ctx.closePath();
-    }
-
-    hasCollision(ball) {
-        return collides(ball, this);
-    }
-
-    static get defaultHeight() { return 10; }
 }
 
 class Brick {
@@ -147,9 +131,22 @@ class Brick {
     static get defaultPadding() { return 10; }
 }
 
-const paddle = new Paddle(canvas, 
-                          (canvas.width - 75) / 2,
-                          canvas.height - Paddle.defaultHeight);
+class Paddle extends Brick {
+    constructor(ctx, x, y, width, height) {
+        super(ctx, x, y, width, height);
+    }
+    
+    static get defaultHeight() { return 10; }
+    static get defaultWidth() { return 75; }
+    get dx() { return 7; }
+}
+
+const paddle = new Paddle(
+    ctx,
+    (canvas.width - Paddle.defaultWidth) / 2,
+    canvas.height - Paddle.defaultHeight,
+    Paddle.defaultWidth,
+    Paddle.defaultHeight);
 
 const brickCount = { 'row': 3, 'column': 5, };
 const brickOffset = { 'top' : 30, 'left' : 30, }; 
@@ -191,12 +188,15 @@ function main() {
         ball.reverseDY();
     }
     
-    if (outerBound.hasHorizontalCollision() === true) {
-        ball.reverseDX();
+    if (outerBound.hasLeftWallCollision() === true) {
+        ball.positiveDX();
+    }
+    else if (outerBound.hasRightWallCollision() === true) {
+        ball.negativeDX();
     }
     
     if (outerBound.hasCeilCollision() === true) {
-        ball.reverseDY();
+        ball.negativeDY();
     }
     else if (outerBound.hasBottomCollision() === true) {
         gameOver();
