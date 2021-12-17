@@ -252,14 +252,23 @@ function collides(circle, rect) {
     
     return cases.some((c, i, _) => { 
         const intersection = getIntersection(c.radius, c.axis1Center, c.axis2Center, c.axis2Coordinate);
-        const result = intersection >= c.axis1Min && intersection <= c.axis1Max;
-        if (result === true) { console.log(c.toString()); }
+        
+        const result = intersection === null
+            ? false
+            : intersection.some((v, j, _) => v >= c.axis1Min && v <= c.axis1Max);
+
+        if (result === true)
+            console.log(c.toString());
+
         return result;
     });
 
+    // intersection of a line (asix2 = asix2Coordinate) with a circle(r, asix1Center, asix2Center)
     function getIntersection(r, asix1Center, asix2Center, asix2Coordinate) {
-        return Math.sqrt(r ** 2 - (asix2Coordinate - asix2Center) ** 2) + asix1Center;
-    }   
+        const c = r ** 2 - (asix2Coordinate - asix2Center) ** 2;
+        if (c < 0) return null;
+        return [Math.sqrt(c) + asix1Center, -Math.sqrt(c) + asix1Center];
+    }
 }
 
 class Case {
