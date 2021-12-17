@@ -123,7 +123,7 @@ class Brick {
     }
 
     hasCollision(ball) {
-        return collides(ball, this);
+        return intersects(ball, this);
     }
 
     static get defaultWidth() { return 75; }
@@ -242,12 +242,12 @@ function gameOver() {
     clearInterval(interval);
 }
 
-function collides(circle, rect) {  
+function intersects(circle, rect) {  
     const cases = [
-        new CollisionCase(circle.radius, circle.y, circle.x, rect.x, rect.y, rect.y + rect.height),
-        new CollisionCase(circle.radius, circle.y, circle.x, rect.x + rect.width, rect.y, rect.y + rect.height),
-        new CollisionCase(circle.radius, circle.x, circle.y, rect.y, rect.x, rect.x + rect.width),
-        new CollisionCase(circle.radius, circle.x, circle.y, rect.y + rect.height, rect.x, rect.x + rect.width),
+        new CollisionCandidate(circle.radius, circle.y, circle.x, rect.x, rect.y, rect.y + rect.height),
+        new CollisionCandidate(circle.radius, circle.y, circle.x, rect.x + rect.width, rect.y, rect.y + rect.height),
+        new CollisionCandidate(circle.radius, circle.x, circle.y, rect.y, rect.x, rect.x + rect.width),
+        new CollisionCandidate(circle.radius, circle.x, circle.y, rect.y + rect.height, rect.x, rect.x + rect.width),
     ];
     
     return cases.some((c, i, _) => { 
@@ -271,7 +271,7 @@ function collides(circle, rect) {
     }
 }
 
-class CollisionCase {
+class CollisionCandidate {
     constructor(radius, axis1Center, axis2Center, axis2Coordinate, axis1Min, axis1Max) {
         {
             if (radius === undefined || radius === null) throw new Error(); 
