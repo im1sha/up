@@ -30,14 +30,6 @@ class Ball {
         this.y += this.dy;
     }
 
-    reverseDX() {
-        this.dx = -this.dx;
-    }
-
-    reverseDY() {
-        this.dy = -this.dy;
-    }
-
     positiveDX() {
         this.dx = Math.abs(this.dx);
     }
@@ -52,6 +44,27 @@ class Ball {
     
     negativeDY() {
         this.dy = -Math.abs(this.dy)
+    }
+
+    handleCollision(brickCollisions) {
+        const bottom = brickCollisions.some(c => c.position === CollisionPosition.bottom);
+        const left = brickCollisions.some(c => c.position === CollisionPosition.left);
+        const right = brickCollisions.some(c => c.position === CollisionPosition.right);
+        const top = brickCollisions.some(c => c.position === CollisionPosition.top);
+
+        if (top === true && bottom === false) {
+            this.negativeDY();
+        } 
+        else if (top === false && bottom === true) {
+            this.positiveDY();
+        }
+
+        if (left === true && right === false) {
+            this.negativeDX();
+        }
+        else if (left === false && right === true) {
+            this.positiveDX();
+        }
     }
 }
 
@@ -122,7 +135,7 @@ class Brick {
         this._ctx.closePath();
     }
 
-    hasCollision(ball) {
+    collisions(ball) {
         return intersects(ball, this);
     }
 
@@ -180,13 +193,11 @@ function main() {
     paddle.draw();
     ball.draw();
 
-    if (bricks.flat().some(b => b.hasCollision(ball)) === true) {
-        ball.reverseDY();
-    }
+    const brickCollisions = bricks.flat().map(b => b.collisions(ball)).flat();   
+    ball.handleCollision(brickCollisions);
     
-    if (paddle.hasCollision(ball) === true) {
-        ball.reverseDY();
-    }
+    const paddleCollisions = paddle.collisions(ball);
+    ball.handleCollision(paddleCollisions);
     
     if (outerBound.hasLeftWallCollision() === true) {
         ball.positiveDX();
@@ -244,13 +255,13 @@ function gameOver() {
 
 function intersects(circle, rect) {  
     const cases = [
-        new CollisionCandidate(circle.radius, circle.y, circle.x, rect.x, rect.y, rect.y + rect.height),
-        new CollisionCandidate(circle.radius, circle.y, circle.x, rect.x + rect.width, rect.y, rect.y + rect.height),
-        new CollisionCandidate(circle.radius, circle.x, circle.y, rect.y, rect.x, rect.x + rect.width),
-        new CollisionCandidate(circle.radius, circle.x, circle.y, rect.y + rect.height, rect.x, rect.x + rect.width),
+        new CollisionCandidate(CollisionPosition.left, circle.radius, circle.y, circle.x, rect.x, rect.y, rect.y + rect.height),
+        new CollisionCandidate(CollisionPosition.right, circle.radius, circle.y, circle.x, rect.x + rect.width, rect.y, rect.y + rect.height),
+        new CollisionCandidate(CollisionPosition.top, circle.radius, circle.x, circle.y, rect.y, rect.x, rect.x + rect.width),
+        new CollisionCandidate(CollisionPosition.bottom, circle.radius, circle.x, circle.y, rect.y + rect.height, rect.x, rect.x + rect.width),
     ];
     
-    return cases.some((c, i, _) => { 
+    return cases.filter((c, i, _) => { 
         const intersection = getIntersection(c.radius, c.axis1Center, c.axis2Center, c.axis2Coordinate);
         
         const result = intersection === null
@@ -271,9 +282,17 @@ function intersects(circle, rect) {
     }
 }
 
+class CollisionPosition {
+    static get left() { return 'left'; }
+    static get right() { return 'right'; }
+    static get top() { return 'top'; }
+    static get bottom() { return 'bottom'; }
+}
+
 class CollisionCandidate {
-    constructor(radius, axis1Center, axis2Center, axis2Coordinate, axis1Min, axis1Max) {
+    constructor(position, radius, axis1Center, axis2Center, axis2Coordinate, axis1Min, axis1Max) {
         {
+            if (position === undefined || position === null) throw new Error(); 
             if (radius === undefined || radius === null) throw new Error(); 
             if (axis1Center === undefined || axis1Center === null) throw new Error(); 
             if (axis2Center === undefined || axis2Center === null) throw new Error(); 
@@ -281,6 +300,7 @@ class CollisionCandidate {
             if (axis1Min === undefined || axis1Min === null) throw new Error(); 
             if (axis1Max === undefined || axis1Max === null) throw new Error(); 
         }
+        this.position = position;
         this.radius = radius;
         this.axis1Center = axis1Center;
         this.axis2Center = axis2Center;
@@ -290,7 +310,8 @@ class CollisionCandidate {
     }
 
     toString() {
-        return 'R: ' + this.radius +
+        return 'position: ' + this.position +
+            ', r: ' + this.radius +
             ', a1c: ' + this.axis1Center +
             ', a2c: ' + this.axis2Center +
             ', a2: ' + this.axis2Coordinate +
