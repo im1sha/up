@@ -212,7 +212,7 @@ function main() {
     }
     
     if (outerBound.hasCeilCollision() === true) {
-        ball.negativeDY();
+        ball.positiveDY();
     }
     else if (outerBound.hasBottomCollision() === true) {
         gameOver();
