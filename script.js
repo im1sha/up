@@ -65,6 +65,8 @@ class Ball {
         else if (left === false && right === true) {
             this.positiveDX();
         }
+
+        return [...new Set(brickCollisions.map((v, i, _) => v.object))];
     }
 }
 
@@ -163,7 +165,7 @@ const paddle = new Paddle(
 
 const brickCount = { 'row': 3, 'column': 5, };
 const brickOffset = { 'top' : 30, 'left' : 30, }; 
-const bricks = Array.from(
+let bricks = Array.from(
     { length: brickCount.column },
     (_, c) => Array.from(
         { length: brickCount.row },
@@ -172,7 +174,8 @@ const bricks = Array.from(
             (c * (Brick.defaultWidth + Brick.defaultPadding)) + brickOffset.left,
             (r * (Brick.defaultHeight + Brick.defaultPadding)) + brickOffset.top,
             Brick.defaultWidth,
-            Brick.defaultHeight)));
+            Brick.defaultHeight)))
+    .flat();
 
 const ball = new Ball(canvas);
 const outerBound = new OuterBound(ball, canvas);
@@ -188,14 +191,16 @@ const interval = setInterval(main, 10);
 function main() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    bricks.flat().forEach(b => b.draw());
+    bricks.forEach(b => b.draw());
 
     paddle.draw();
     ball.draw();
 
-    const brickCollisions = bricks.flat().map(b => b.collisions(ball)).flat();   
-    ball.handleCollision(brickCollisions);
-    
+    const brickCollisions = bricks.map(b => b.collisions(ball)).flat();   
+    const bricksToRemove = ball.handleCollision(brickCollisions);
+    bricks = bricks.filter((v, i, _) =>
+        bricksToRemove.some((toRemove, j, _) => v === toRemove) === false);
+
     const paddleCollisions = paddle.collisions(ball);
     ball.handleCollision(paddleCollisions);
     
@@ -255,10 +260,10 @@ function gameOver() {
 
 function intersects(circle, rect) {  
     const cases = [
-        new CollisionCandidate(CollisionPosition.left, circle.radius, circle.y, circle.x, rect.x, rect.y, rect.y + rect.height),
-        new CollisionCandidate(CollisionPosition.right, circle.radius, circle.y, circle.x, rect.x + rect.width, rect.y, rect.y + rect.height),
-        new CollisionCandidate(CollisionPosition.top, circle.radius, circle.x, circle.y, rect.y, rect.x, rect.x + rect.width),
-        new CollisionCandidate(CollisionPosition.bottom, circle.radius, circle.x, circle.y, rect.y + rect.height, rect.x, rect.x + rect.width),
+        new CollisionCandidate(CollisionPosition.left, circle.radius, circle.y, circle.x, rect.x, rect.y, rect.y + rect.height, rect),
+        new CollisionCandidate(CollisionPosition.right, circle.radius, circle.y, circle.x, rect.x + rect.width, rect.y, rect.y + rect.height, rect),
+        new CollisionCandidate(CollisionPosition.top, circle.radius, circle.x, circle.y, rect.y, rect.x, rect.x + rect.width, rect),
+        new CollisionCandidate(CollisionPosition.bottom, circle.radius, circle.x, circle.y, rect.y + rect.height, rect.x, rect.x + rect.width, rect),
     ];
     
     return cases.filter((c, i, _) => { 
@@ -290,7 +295,14 @@ class CollisionPosition {
 }
 
 class CollisionCandidate {
-    constructor(position, radius, axis1Center, axis2Center, axis2Coordinate, axis1Min, axis1Max) {
+    constructor(position,
+                radius, 
+                axis1Center, 
+                axis2Center, 
+                axis2Coordinate, 
+                axis1Min, 
+                axis1Max,
+                object) {
         {
             if (position === undefined || position === null) throw new Error(); 
             if (radius === undefined || radius === null) throw new Error(); 
@@ -299,6 +311,7 @@ class CollisionCandidate {
             if (axis2Coordinate === undefined || axis2Coordinate === null) throw new Error(); 
             if (axis1Min === undefined || axis1Min === null) throw new Error(); 
             if (axis1Max === undefined || axis1Max === null) throw new Error(); 
+            if (object === undefined || object === null) throw new Error(); 
         }
         this.position = position;
         this.radius = radius;
@@ -307,6 +320,7 @@ class CollisionCandidate {
         this.axis2Coordinate = axis2Coordinate;
         this.axis1Min = axis1Min;
         this.axis1Max = axis1Max;
+        this.object = object;
     }
 
     toString() {
