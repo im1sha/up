@@ -147,10 +147,53 @@ class Brick {
 }
 
 class Paddle extends Brick {
-    constructor(ctx, x, y, width, height) {
+    constructor(ctx, x, y, width, height, canvas) {
+        {
+            if (canvas === undefined || canvas === null) throw new Error(); 
+        }
         super(ctx, x, y, width, height);
+
+        this.rightPressed = false;
+        this.leftPressed = false;
+    
+        this.canvas = canvas;
+        document.addEventListener("keydown", e => this.keyDownHandler(e, this), false);
+        document.addEventListener("keyup", e => this.keyUpHandler(e, this), false);
     }
     
+    move() {
+        if (this.rightPressed === true && this.leftPressed === false) {
+            this.x += this.dx;
+            if (this.x + this.width > this.canvas.width) {
+                this.x = this.canvas.width - this.width;
+            }
+        }
+        else if (this.leftPressed === true && this.rightPressed === false) {
+            this.x -= this.dx;
+            if (this.x < 0) {
+                this.x = 0;
+            }
+        }
+    }
+
+    keyDownHandler(e, paddle) {
+        if (e.key === "Right" || e.key === "ArrowRight") {
+            paddle.rightPressed = true;
+        }
+        else if (e.key === "Left" || e.key === "ArrowLeft") {
+            paddle.leftPressed = true;
+        }
+    }
+    
+    keyUpHandler(e, paddle) {
+        if (e.key === "Right" || e.key === "ArrowRight") {
+            paddle.rightPressed = false;
+        }
+        else if (e.key === "Left" || e.key === "ArrowLeft") {
+            paddle.leftPressed = false;
+        }
+    }   
+
     static get defaultHeight() { return 10; }
     static get defaultWidth() { return 75; }
     get dx() { return 7; }
@@ -161,7 +204,8 @@ const paddle = new Paddle(
     (canvas.width - Paddle.defaultWidth) / 2,
     canvas.height - Paddle.defaultHeight,
     Paddle.defaultWidth,
-    Paddle.defaultHeight);
+    Paddle.defaultHeight,
+    canvas);
 
 const brickCount = { 'row': 3, 'column': 5, };
 const brickOffset = { 'top' : 30, 'left' : 30, }; 
@@ -180,16 +224,14 @@ let bricks = Array.from(
 const ball = new Ball(canvas);
 const outerBound = new OuterBound(ball, canvas);
 
-let rightPressed = false;
-let leftPressed = false;
-
-document.addEventListener("keydown", keyDownHandler, false);
-document.addEventListener("keyup", keyUpHandler, false);
+let score = 0;
 
 const interval = setInterval(main, 10);
 
 function main() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    displayScore(ctx, score);
 
     bricks.forEach(b => b.draw());
 
@@ -198,12 +240,17 @@ function main() {
 
     const brickCollisions = bricks.map(b => b.collisions(ball)).flat();   
     const bricksToRemove = ball.handleCollision(brickCollisions);
+    score += bricksToRemove.length;    
     bricks = bricks.filter((v, i, _) =>
         bricksToRemove.some((toRemove, j, _) => v === toRemove) === false);
 
     const paddleCollisions = paddle.collisions(ball);
     ball.handleCollision(paddleCollisions);
     
+    if (bricks.length === 0) {
+        win();
+    }
+
     if (outerBound.hasLeftWallCollision() === true) {
         ball.positiveDX();
     }
@@ -218,44 +265,26 @@ function main() {
         gameOver();
     }
 
-    if (rightPressed === true && leftPressed === false) {
-        paddle.x += paddle.dx;
-        if (paddle.x + paddle.width > canvas.width) {
-            paddle.x = canvas.width - paddle.width;
-        }
-    }
-    else if (leftPressed === true && rightPressed === false) {
-        paddle.x -= paddle.dx;
-        if (paddle.x < 0) {
-            paddle.x = 0;
-        }
-    }
-
+    paddle.move();
     ball.move();
-}
-
-function keyDownHandler(e) {
-    if (e.key === "Right" || e.key === "ArrowRight") {
-        rightPressed = true;
-    }
-    else if (e.key === "Left" || e.key === "ArrowLeft") {
-        leftPressed = true;
-    }
-}
-
-function keyUpHandler(e) {
-    if (e.key === "Right" || e.key === "ArrowRight") {
-        rightPressed = false;
-    }
-    else if (e.key === "Left" || e.key === "ArrowLeft") {
-        leftPressed = false;
-    }
 }
 
 function gameOver() {
     alert("game over");
     document.location.reload();
     clearInterval(interval);
+}
+
+function win() {
+    alert("you win!");
+    document.location.reload();
+    clearInterval(interval);
+}
+
+function displayScore(ctx, score) {
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#0095DD";
+    ctx.fillText("Score: " + score, 8, 20);
 }
 
 function intersects(circle, rect) {  
