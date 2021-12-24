@@ -239,8 +239,6 @@ let outerBound = new OuterBound(ball, canvas);
 let score = 0;
 let lives = 3;
 
-const interval = setInterval(main, 10);
-
 function main() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -287,18 +285,18 @@ function main() {
 
     paddle.move();
     ball.move();
+
+    requestAnimationFrame(main);
 }
 
 function gameOver() {
     alert("game over");
     document.location.reload();
-    clearInterval(interval);
 }
 
 function win() {
     alert("you win!");
     document.location.reload();
-    clearInterval(interval);
 }
 
 function displayScore(ctx, score) {
@@ -388,3 +386,5 @@ class CollisionCandidate {
             ', a1max: ' + this.axis1Max; 
     }
 }
+
+main();
