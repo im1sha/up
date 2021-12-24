@@ -14,10 +14,10 @@ class Ball {
         this._yRelative = y / canvas.height;
         this._dxRelative = d / canvas.width;
         this._dyRelative = -d / canvas.height;
-        this._radiusRelative = radius / ((canvas.width + canvas.height) / 2);
+        this._radiusRelative = radius / canvas.width;
     }
 
-    get radius() { return this._radiusRelative * ((this._canvas.width + this._canvas.height) / 2); }
+    get radius() { return this._radiusRelative * this._canvas.width; }
     get x() { return this._xRelative * this._canvas.width; }
     get y() { return this._yRelative * this._canvas.height; }
 
@@ -75,7 +75,7 @@ class Ball {
 
     static create(canvas) {
         return new Ball(canvas,
-            canvas.height / 40,
+            canvas.width / 40,
             canvas.width / 2,
             canvas.height * 0.8,
             canvas.height / 200);
