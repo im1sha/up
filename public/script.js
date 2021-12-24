@@ -1,46 +1,53 @@
 class Ball {
-    constructor(canvas) {
+    constructor(canvas, radius, x, y, d) {
         {
             if (canvas === undefined || canvas === null) throw new Error();
+            if (radius === undefined || radius === null) throw new Error();
+            if (x === undefined || x === null) throw new Error();
+            if (y === undefined || y === null) throw new Error();
+            if (d === undefined || d === null) throw new Error();
         }
 
         this._ctx = canvas.getContext("2d");
         this._canvas = canvas;
-        this.x = canvas.width / 2;
-        this.y = canvas.height - 30;
-        this.dx = 2;
-        this.dy = -2;
+        this._x = x;
+        this._y = y;
+        this._dx = d;
+        this._dy = -d;
+        this._radius = radius;
     }
 
-    get radius() { return 10; }
+    get radius() { return this._radius; }
+    get x() { return this._x; }
+    get y() { return this._y; }
 
     draw() {
         this._ctx.beginPath();
-        this._ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+        this._ctx.arc(this._x, this._y, this.radius, 0, Math.PI*2);
         this._ctx.fillStyle = "#FF0000";
         this._ctx.fill(); 
         this._ctx.closePath();
     }
 
     move() {
-        this.x += this.dx;
-        this.y += this.dy;
+        this._x += this._dx;
+        this._y += this._dy;
     }
 
     positiveDX() {
-        this.dx = Math.abs(this.dx);
+        this._dx = Math.abs(this._dx);
     }
 
     negativeDX() {
-        this.dx = -Math.abs(this.dx);
+        this._dx = -Math.abs(this._dx);
     }
 
     positiveDY() {
-        this.dy = Math.abs(this.dy);
+        this._dy = Math.abs(this._dy);
     } 
     
     negativeDY() {
-        this.dy = -Math.abs(this.dy)
+        this._dy = -Math.abs(this._dy)
     }
 
     handleCollision(brickCollisions) {
@@ -64,6 +71,14 @@ class Ball {
         }
 
         return [...new Set(brickCollisions.map((v, i, _) => v.object))];
+    }
+
+    static create(canvas) {
+        return new Ball(canvas,
+            canvas.height / 40,
+            canvas.width / 2,
+            canvas.height * 0.8,
+            canvas.height / 200);
     }
 }
 
@@ -284,7 +299,7 @@ function intersects(circle, rect) {
     }
 }
 
-function main() {
+function main() {  
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     displayScore(ctx, score);
@@ -323,7 +338,7 @@ function main() {
             gameOver();
         }
         else {
-            ball = new Ball(canvas);
+            ball = Ball.create(canvas);
             outerBound = new OuterBound(ball, canvas);
         }
     }
@@ -381,10 +396,10 @@ let bricks = Array.from(
             Brick.defaultHeight)))
     .flat();
 
-let ball = new Ball(canvas);
+let ball = Ball.create(canvas);
 let outerBound = new OuterBound(ball, canvas);
 
 let score = 0;
 let lives = 3;
-
+          
 main();
