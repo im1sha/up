@@ -293,8 +293,8 @@ class Paddle extends Brick {
         }
 
         const ctx = canvas.getContext("2d");
-        const defaultWidth = canvas.width / 7;
-        const defaultHeight = canvas.height / 30;
+        const defaultWidth = canvas.width / 5.5;
+        const defaultHeight = canvas.height / 35;
 
         return new Paddle(canvas,
             ctx,
