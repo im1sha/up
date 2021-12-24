@@ -233,10 +233,11 @@ let bricks = Array.from(
             Brick.defaultHeight)))
     .flat();
 
-const ball = new Ball(canvas);
-const outerBound = new OuterBound(ball, canvas);
+let ball = new Ball(canvas);
+let outerBound = new OuterBound(ball, canvas);
 
 let score = 0;
+let lives = 3;
 
 const interval = setInterval(main, 10);
 
@@ -244,6 +245,7 @@ function main() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     displayScore(ctx, score);
+    displayLives(ctx, canvas.width, lives);
 
     bricks.forEach(b => b.draw());
 
@@ -274,7 +276,13 @@ function main() {
         ball.positiveDY();
     }
     else if (outerBound.hasBottomCollision() === true) {
-        gameOver();
+        if (--lives === 0) {
+            gameOver();
+        }
+        else {
+            ball = new Ball(canvas);
+            outerBound = new OuterBound(ball, canvas);
+        }
     }
 
     paddle.move();
@@ -297,6 +305,12 @@ function displayScore(ctx, score) {
     ctx.font = "16px Arial";
     ctx.fillStyle = "#0095DD";
     ctx.fillText("Score: " + score, 8, 20);
+}
+
+function displayLives(ctx, width, lives) {
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#0095DD";
+    ctx.fillText("Lives: " + lives, width - 65, 20);
 }
 
 function intersects(circle, rect) {  
