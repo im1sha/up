@@ -238,7 +238,7 @@ class Paddle extends Brick {
     }
 
     mouseMoveHandler(e, paddle) {
-        const relativeX = e.clientX - paddle._canvas.offsetLeft;
+        const relativeX = e.clientX - paddle._canvas.offsetLeft - paddle.width / 2;
         paddle.x = paddle.normalizePosition(paddle, relativeX);
     }
 
@@ -262,7 +262,8 @@ class Paddle extends Brick {
 
     touchHandler(e, paddle) {
         const relativeX = e.changedTouches[e.changedTouches.length - 1].pageX
-            - paddle._canvas.offsetLeft;
+            - paddle._canvas.offsetLeft
+            - paddle.width / 2;
         paddle.x = paddle.normalizePosition(paddle, relativeX);
     }
 
