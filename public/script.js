@@ -213,11 +213,12 @@ class Paddle extends Brick {
         this._keydown = e => this.keyDownHandler(e, this);
         this._keyup = e => this.keyUpHandler(e, this);
         this._mousemove = e => this.mouseMoveHandler(e, this);
+        this._touchmove = e => this.touchMoveHandler(e, this);
 
         document.addEventListener("keydown", this._keydown, false);
         document.addEventListener("keyup", this._keyup, false);
         document.addEventListener("mousemove", this._mousemove, false);
-
+        document.addEventListener("touchmove", this._touchmove, false);
         console.log(x, y, height, width);
     }
 
@@ -255,6 +256,12 @@ class Paddle extends Brick {
         else if (e.key === "Left" || e.key === "ArrowLeft") {
             paddle._leftPressed = false;
         }
+    }
+
+    touchMoveHandler(e, paddle) {
+        e.preventDefault();       
+        const relativeX = e.changedTouches.slice(-1).pageX - paddle._canvas.offsetLeft;
+        paddle.x = paddle.normalizePosition(paddle, relativeX);
     }
 
     normalizePosition(paddle, position) {
