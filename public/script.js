@@ -387,6 +387,7 @@ function main() {
     
     if (bricks.length === 0) {
         win();
+        return;
     }
 
     if (outerBound.hasLeftWallCollision() === true) {
@@ -402,6 +403,7 @@ function main() {
     else if (outerBound.hasBottomCollision() === true) {
         if (--lives === 0) {
             gameOver();
+            return;
         }
         else {
             ball = Ball.create(canvas);
