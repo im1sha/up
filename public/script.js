@@ -213,12 +213,14 @@ class Paddle extends Brick {
         this._keydown = e => this.keyDownHandler(e, this);
         this._keyup = e => this.keyUpHandler(e, this);
         this._mousemove = e => this.mouseMoveHandler(e, this);
-        this._touchmove = e => this.touchMoveHandler(e, this);
+        this._touch = e => this.touchMoveHandler(e, this);
 
         document.addEventListener("keydown", this._keydown, false);
         document.addEventListener("keyup", this._keyup, false);
         document.addEventListener("mousemove", this._mousemove, false);
-        document.addEventListener("touchmove", this._touchmove, false);
+        document.addEventListener("touchmove", this._touch, false);
+        document.addEventListener("touchstart", this._touch, false);
+       
         console.log(x, y, height, width);
     }
 
@@ -259,8 +261,8 @@ class Paddle extends Brick {
     }
 
     touchMoveHandler(e, paddle) {
-        e.preventDefault();       
-        const relativeX = e.changedTouches.slice(-1).pageX - paddle._canvas.offsetLeft;
+        const relativeX = e.changedTouches[e.changedTouches.length - 1].pageX
+            - paddle._canvas.offsetLeft;
         paddle.x = paddle.normalizePosition(paddle, relativeX);
     }
 
@@ -306,6 +308,8 @@ class Paddle extends Brick {
         document.removeEventListener("keydown", this._keydown, false);
         document.removeEventListener("keyup", this._keyup, false);
         document.removeEventListener("mousemove", this._mousemove, false);
+        document.removeEventListener("touchmove", this._touch, false);
+        document.removeEventListener("touchstart", this._touch, false);
     }
 }
 
