@@ -384,8 +384,8 @@ function main() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    displayScore(ctx, score);
-    displayLives(ctx, canvas.width, lives);
+    displayScore(ctx, canvas.width, canvas.height, score);
+    displayLives(ctx, canvas.width, canvas.height, lives);
 
     bricks.forEach(b => b.draw());
 
@@ -443,16 +443,16 @@ function win() {
     document.location.reload();
 }
 
-function displayScore(ctx, score) {
-    ctx.font = "12px Verdana";
+function displayScore(ctx, width, height, score) {
+    ctx.font = `${(width + height) / 100}px Verdana`;
     ctx.fillStyle = "#534383";
-    ctx.fillText("Score: " + score, 8, 12);
+    ctx.fillText("Score: " + score, 0.05 * width, 0.03 * height);
 }
 
-function displayLives(ctx, width, lives) {
-    ctx.font = "12px Verdana";
+function displayLives(ctx, width, height, lives) {
+    ctx.font = `${(width + height) / 100}px Verdana`;
     ctx.fillStyle = "#534383";
-    ctx.fillText("Lives: " + lives, width - 65, 12);
+    ctx.fillText("Lives: " + lives, width * 0.9, 0.03 * height);
 }
 
 const canvas = document.getElementById("myCanvas");
