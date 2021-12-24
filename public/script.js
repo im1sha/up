@@ -452,7 +452,7 @@ function displayScore(ctx, width, height, score) {
 function displayLives(ctx, width, height, lives) {
     ctx.font = `${(width + height) / 100}px Verdana`;
     ctx.fillStyle = "#534383";
-    ctx.fillText("Lives: " + lives, width * 0.9, 0.03 * height);
+    ctx.fillText("Lives: " + lives, width * 0.85, 0.03 * height);
 }
 
 const canvas = document.getElementById("myCanvas");
