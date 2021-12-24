@@ -159,21 +159,21 @@ class Paddle extends Brick {
         this.canvas = canvas;
         document.addEventListener("keydown", e => this.keyDownHandler(e, this), false);
         document.addEventListener("keyup", e => this.keyUpHandler(e, this), false);
+        document.addEventListener("mousemove", e => this.mouseMoveHandler(e, this), false);
     }
     
     move() {
         if (this.rightPressed === true && this.leftPressed === false) {
-            this.x += this.dx;
-            if (this.x + this.width > this.canvas.width) {
-                this.x = this.canvas.width - this.width;
-            }
+            this.x = this.normalizePosition(this, this.x + this.dx);        
         }
         else if (this.leftPressed === true && this.rightPressed === false) {
-            this.x -= this.dx;
-            if (this.x < 0) {
-                this.x = 0;
-            }
+            this.x = this.normalizePosition(this, this.x - this.dx);        
         }
+    }
+
+    mouseMoveHandler(e, paddle) {
+        const relativeX = e.clientX - paddle.canvas.offsetLeft;
+        paddle.x = paddle.normalizePosition(paddle, relativeX);
     }
 
     keyDownHandler(e, paddle) {
@@ -192,7 +192,19 @@ class Paddle extends Brick {
         else if (e.key === "Left" || e.key === "ArrowLeft") {
             paddle.leftPressed = false;
         }
-    }   
+    }
+
+    normalizePosition(paddle, position) {
+        if (position + paddle.width > paddle.canvas.width) {
+            return paddle.canvas.width - paddle.width;
+        }
+        else if (position < 0) {
+            return 0;
+        }
+        else {
+            return position;
+        } 
+    }
 
     static get defaultHeight() { return 10; }
     static get defaultWidth() { return 75; }
