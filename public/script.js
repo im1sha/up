@@ -10,44 +10,44 @@ class Ball {
 
         this._ctx = canvas.getContext("2d");
         this._canvas = canvas;
-        this._x = x;
-        this._y = y;
-        this._dx = d;
-        this._dy = -d;
-        this._radius = radius;
+        this._xRelative = x / canvas.width;
+        this._yRelative = y / canvas.height;
+        this._dxRelative = d / canvas.width;
+        this._dyRelative = -d / canvas.height;
+        this._radiusRelative = radius / canvas.width;
     }
 
-    get radius() { return this._radius; }
-    get x() { return this._x; }
-    get y() { return this._y; }
+    get radius() { return this._radiusRelative * this._canvas.width; }
+    get x() { return this._xRelative * this._canvas.width; }
+    get y() { return this._yRelative * this._canvas.height; }
 
     draw() {
         this._ctx.beginPath();
-        this._ctx.arc(this._x, this._y, this.radius, 0, Math.PI*2);
-        this._ctx.fillStyle = "#FF0000";
+        this._ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+        this._ctx.fillStyle = "#aaaacc";
         this._ctx.fill(); 
         this._ctx.closePath();
     }
 
     move() {
-        this._x += this._dx;
-        this._y += this._dy;
+        this._xRelative += this._dxRelative;
+        this._yRelative += this._dyRelative;
     }
 
     positiveDX() {
-        this._dx = Math.abs(this._dx);
+        this._dxRelative = Math.abs(this._dxRelative);
     }
 
     negativeDX() {
-        this._dx = -Math.abs(this._dx);
+        this._dxRelative = -Math.abs(this._dxRelative);
     }
 
     positiveDY() {
-        this._dy = Math.abs(this._dy);
+        this._dyRelative = Math.abs(this._dyRelative);
     } 
     
     negativeDY() {
-        this._dy = -Math.abs(this._dy)
+        this._dyRelative = -Math.abs(this._dyRelative)
     }
 
     handleCollision(brickCollisions) {
@@ -123,7 +123,7 @@ class OuterBound {
 }
 
 class Brick {
-    constructor(ctx, x, y, width, height, id) {
+    constructor(canvas, ctx, x, y, width, height, id) {
         {
             if (ctx === undefined || ctx === null) throw new Error(); 
             if (x === undefined || x === null) throw new Error(); 
@@ -131,25 +131,27 @@ class Brick {
             if (width === undefined || width === null) throw new Error(); 
             if (height === undefined || height === null) throw new Error(); 
             if (id === undefined || id === null) throw new Error(); 
+            if (canvas === undefined || canvas === null) throw new Error(); 
         }
-        this._x = x;
-        this._y = y;
-        this._width = width;
-        this._height = height; 
+        this._canvas = canvas;
+        this._xRelative = x / canvas.width;
+        this._yRelative = y / canvas.height;
+        this._widthRelative = width / canvas.width;
+        this._heightRelative = height / canvas.height; 
         this._ctx = ctx;
         this._id = id;
     }
 
-    get width() { return this._width; }
-    get height() { return this._height; }
-    get x() { return this._x; }
-    get y() { return this._y; }
+    get width() { return this._widthRelative * this._canvas.width; }
+    get height() { return this._heightRelative * this._canvas.height; }
+    get x() { return this._xRelative * this._canvas.width; }
+    get y() { return this._yRelative * this._canvas.height; }
     get id() { return this._id; }
 
     draw() {
         this._ctx.beginPath();
-        this._ctx.rect(this._x, this._y, this.width, this.height);
-        this._ctx.fillStyle = "#0095DD";
+        this._ctx.rect(this.x, this.y, this.width, this.height);
+        this._ctx.fillStyle = "#99cccc";
         this._ctx.fill();
         this._ctx.closePath();
     }
@@ -182,6 +184,7 @@ class Brick {
                     if (ids.some((v, j, _) => v === id) === false) return null;
 
                     return new Brick(
+                        canvas,
                         ctx,
                         (c * (defaultWidth + leftOffset)) + leftOffset,
                         (r * (defaultHeight + topOffset)) + topOffset,
@@ -195,17 +198,17 @@ class Brick {
 }
 
 class Paddle extends Brick {
-    constructor(ctx, x, y, width, height, dx, canvas) {
+    constructor(canvas, ctx, x, y, width, height, dx) {
         {
             if (canvas === undefined || canvas === null) throw new Error(); 
         }
-        super(ctx, x, y, width, height, -1);
+        super(canvas, ctx, x, y, width, height, -1);
 
         this._rightPressed = false;
         this._leftPressed = false;
     
         this._canvas = canvas;
-        this._dx = dx;
+        this._dxRelative = dx / canvas.width;
 
         this._keydown = e => this.keyDownHandler(e, this);
         this._keyup = e => this.keyUpHandler(e, this);
@@ -214,11 +217,13 @@ class Paddle extends Brick {
         document.addEventListener("keydown", this._keydown, false);
         document.addEventListener("keyup", this._keyup, false);
         document.addEventListener("mousemove", this._mousemove, false);
+
+        console.log(x, y, height, width);
     }
 
-    get dx() { return this._dx; }
-    get x() { return this._x; }   
-    set x(value) { this._x = value; }
+    get dx() { return this._dxRelative * this._canvas.width; }
+    get x() { return this._xRelative * this._canvas.width; }   
+    set x(value) { this._xRelative = value / this._canvas.width; }
 
     move() {
         if (this._rightPressed === true && this._leftPressed === false) {
@@ -264,6 +269,14 @@ class Paddle extends Brick {
         } 
     }
 
+    draw() {
+        this._ctx.beginPath();
+        this._ctx.rect(this.x, this.y, this.width, this.height);
+        this._ctx.fillStyle = "#ff6680";
+        this._ctx.fill();
+        this._ctx.closePath();
+    }
+
     static create(canvas) {
         {
             if (canvas === null || canvas === undefined) throw new Error();
@@ -271,15 +284,15 @@ class Paddle extends Brick {
 
         const ctx = canvas.getContext("2d");
         const defaultWidth = canvas.width / 7;
-        const defaultHeight = canvas.height / 25;
+        const defaultHeight = canvas.height / 30;
 
-        return new Paddle(ctx,
+        return new Paddle(canvas,
+            ctx,
             (canvas.width - defaultWidth) / 2,
             canvas.height - defaultHeight,
             defaultWidth,
             defaultHeight,
-            defaultWidth / 5,
-            canvas);
+            defaultWidth / 5);
     }
 
     dispose() {
@@ -365,7 +378,10 @@ function intersects(circle, rect) {
     }
 }
 
-function main() {  
+function main() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     displayScore(ctx, score);
@@ -428,15 +444,15 @@ function win() {
 }
 
 function displayScore(ctx, score) {
-    ctx.font = "16px Arial";
-    ctx.fillStyle = "#0095DD";
-    ctx.fillText("Score: " + score, 8, 15);
+    ctx.font = "12px Verdana";
+    ctx.fillStyle = "#534383";
+    ctx.fillText("Score: " + score, 8, 12);
 }
 
 function displayLives(ctx, width, lives) {
-    ctx.font = "16px Arial";
-    ctx.fillStyle = "#0095DD";
-    ctx.fillText("Lives: " + lives, width - 65, 15);
+    ctx.font = "12px Verdana";
+    ctx.fillStyle = "#534383";
+    ctx.fillText("Lives: " + lives, width - 65, 12);
 }
 
 const canvas = document.getElementById("myCanvas");

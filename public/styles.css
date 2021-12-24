@@ -1,2 +1,3 @@
 * { padding: 0; margin: 0; }
-canvas { background: #eee; display: block; margin: 0 auto; }
+canvas { background: #e6f7fd; display: block; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
