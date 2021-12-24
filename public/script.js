@@ -123,27 +123,32 @@ class OuterBound {
 }
 
 class Brick {
-    constructor(ctx, x, y, width, height) {
+    constructor(ctx, x, y, width, height, id) {
         {
             if (ctx === undefined || ctx === null) throw new Error(); 
             if (x === undefined || x === null) throw new Error(); 
             if (y === undefined || y === null) throw new Error(); 
             if (width === undefined || width === null) throw new Error(); 
             if (height === undefined || height === null) throw new Error(); 
+            if (id === undefined || id === null) throw new Error(); 
         }
-        this.x = x;
-        this.y = y;
+        this._x = x;
+        this._y = y;
         this._width = width;
         this._height = height; 
         this._ctx = ctx;
+        this._id = id;
     }
 
     get width() { return this._width; }
     get height() { return this._height; }
+    get x() { return this._x; }
+    get y() { return this._y; }
+    get id() { return this._id; }
 
     draw() {
         this._ctx.beginPath();
-        this._ctx.rect(this.x, this.y, this.width, this.height);
+        this._ctx.rect(this._x, this._y, this.width, this.height);
         this._ctx.fillStyle = "#0095DD";
         this._ctx.fill();
         this._ctx.closePath();
@@ -153,62 +158,103 @@ class Brick {
         return intersects(ball, this);
     }
 
-    static get defaultWidth() { return 75; }
-    static get defaultHeight() { return 20; }
-    static get defaultPadding() { return 10; }
+    static create(canvas, columns, rows, ids) {
+        {
+            if (canvas === undefined || canvas === null) throw new Error(); 
+            if (columns === undefined || columns === null) throw new Error(); 
+            if (rows === undefined || rows === null) throw new Error(); 
+            if (ids === undefined || ids === null) throw new Error(); 
+        }
+
+        const ctx = canvas.getContext("2d");
+        const defaultWidth = canvas.width / (columns - 1) / 2;
+        const defaultHeight = canvas.height / 2 / rows / 3;
+        const topOffset = defaultHeight;
+        const leftOffset = defaultWidth / 2;
+
+        return Array.from(
+            { length: columns },
+            (_, c) => Array.from(
+                { length: rows },
+                function (_, r) {
+
+                    const id = r * columns + c;
+                    if (ids.some((v, j, _) => v === id) === false) return null;
+
+                    return new Brick(
+                        ctx,
+                        (c * (defaultWidth + leftOffset)) + leftOffset,
+                        (r * (defaultHeight + topOffset)) + topOffset,
+                        defaultWidth,
+                        defaultHeight,
+                        id);
+                }))
+            .filter((v, i, _) => v !== null)
+            .flat();
+    } 
 }
 
 class Paddle extends Brick {
-    constructor(ctx, x, y, width, height, canvas) {
+    constructor(ctx, x, y, width, height, dx, canvas) {
         {
             if (canvas === undefined || canvas === null) throw new Error(); 
         }
-        super(ctx, x, y, width, height);
+        super(ctx, x, y, width, height, -1);
 
-        this.rightPressed = false;
-        this.leftPressed = false;
+        this._rightPressed = false;
+        this._leftPressed = false;
     
-        this.canvas = canvas;
-        document.addEventListener("keydown", e => this.keyDownHandler(e, this), false);
-        document.addEventListener("keyup", e => this.keyUpHandler(e, this), false);
-        document.addEventListener("mousemove", e => this.mouseMoveHandler(e, this), false);
+        this._canvas = canvas;
+        this._dx = dx;
+
+        this._keydown = e => this.keyDownHandler(e, this);
+        this._keyup = e => this.keyUpHandler(e, this);
+        this._mousemove = e => this.mouseMoveHandler(e, this);
+
+        document.addEventListener("keydown", this._keydown, false);
+        document.addEventListener("keyup", this._keyup, false);
+        document.addEventListener("mousemove", this._mousemove, false);
     }
-    
+
+    get dx() { return this._dx; }
+    get x() { return this._x; }   
+    set x(value) { this._x = value; }
+
     move() {
-        if (this.rightPressed === true && this.leftPressed === false) {
+        if (this._rightPressed === true && this._leftPressed === false) {
             this.x = this.normalizePosition(this, this.x + this.dx);        
         }
-        else if (this.leftPressed === true && this.rightPressed === false) {
+        else if (this._leftPressed === true && this._rightPressed === false) {
             this.x = this.normalizePosition(this, this.x - this.dx);        
         }
     }
 
     mouseMoveHandler(e, paddle) {
-        const relativeX = e.clientX - paddle.canvas.offsetLeft;
+        const relativeX = e.clientX - paddle._canvas.offsetLeft;
         paddle.x = paddle.normalizePosition(paddle, relativeX);
     }
 
     keyDownHandler(e, paddle) {
         if (e.key === "Right" || e.key === "ArrowRight") {
-            paddle.rightPressed = true;
+            paddle._rightPressed = true;
         }
         else if (e.key === "Left" || e.key === "ArrowLeft") {
-            paddle.leftPressed = true;
+            paddle._leftPressed = true;
         }
     }
     
     keyUpHandler(e, paddle) {
         if (e.key === "Right" || e.key === "ArrowRight") {
-            paddle.rightPressed = false;
+            paddle._rightPressed = false;
         }
         else if (e.key === "Left" || e.key === "ArrowLeft") {
-            paddle.leftPressed = false;
+            paddle._leftPressed = false;
         }
     }
 
     normalizePosition(paddle, position) {
-        if (position + paddle.width > paddle.canvas.width) {
-            return paddle.canvas.width - paddle.width;
+        if (position + paddle.width > paddle._canvas.width) {
+            return paddle._canvas.width - paddle.width;
         }
         else if (position < 0) {
             return 0;
@@ -218,9 +264,29 @@ class Paddle extends Brick {
         } 
     }
 
-    static get defaultHeight() { return 10; }
-    static get defaultWidth() { return 75; }
-    get dx() { return 7; }
+    static create(canvas) {
+        {
+            if (canvas === null || canvas === undefined) throw new Error();
+        }
+
+        const ctx = canvas.getContext("2d");
+        const defaultWidth = canvas.width / 7;
+        const defaultHeight = canvas.height / 25;
+
+        return new Paddle(ctx,
+            (canvas.width - defaultWidth) / 2,
+            canvas.height - defaultHeight,
+            defaultWidth,
+            defaultHeight,
+            defaultWidth / 5,
+            canvas);
+    }
+
+    dispose() {
+        document.removeEventListener("keydown", this._keydown, false);
+        document.removeEventListener("keyup", this._keyup, false);
+        document.removeEventListener("mousemove", this._mousemove, false);
+    }
 }
 
 class CollisionPosition {
@@ -362,40 +428,20 @@ function win() {
 function displayScore(ctx, score) {
     ctx.font = "16px Arial";
     ctx.fillStyle = "#0095DD";
-    ctx.fillText("Score: " + score, 8, 20);
+    ctx.fillText("Score: " + score, 8, 15);
 }
 
 function displayLives(ctx, width, lives) {
     ctx.font = "16px Arial";
     ctx.fillStyle = "#0095DD";
-    ctx.fillText("Lives: " + lives, width - 65, 20);
+    ctx.fillText("Lives: " + lives, width - 65, 15);
 }
 
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
 
-const paddle = new Paddle(
-    ctx,
-    (canvas.width - Paddle.defaultWidth) / 2,
-    canvas.height - Paddle.defaultHeight,
-    Paddle.defaultWidth,
-    Paddle.defaultHeight,
-    canvas);
-
-const brickCount = { 'row': 3, 'column': 5, };
-const brickOffset = { 'top' : 30, 'left' : 30, }; 
-let bricks = Array.from(
-    { length: brickCount.column },
-    (_, c) => Array.from(
-        { length: brickCount.row },
-        (_, r) => new Brick(
-            ctx,
-            (c * (Brick.defaultWidth + Brick.defaultPadding)) + brickOffset.left,
-            (r * (Brick.defaultHeight + Brick.defaultPadding)) + brickOffset.top,
-            Brick.defaultWidth,
-            Brick.defaultHeight)))
-    .flat();
-
+const paddle = Paddle.create(canvas);
+let bricks = Brick.create(canvas, 5, 3, [...Array(5 * 3).keys()]);
 let ball = Ball.create(canvas);
 let outerBound = new OuterBound(ball, canvas);
 
