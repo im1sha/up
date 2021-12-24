@@ -213,7 +213,7 @@ class Paddle extends Brick {
         this._keydown = e => this.keyDownHandler(e, this);
         this._keyup = e => this.keyUpHandler(e, this);
         this._mousemove = e => this.mouseMoveHandler(e, this);
-        this._touch = e => this.touchMoveHandler(e, this);
+        this._touch = e => this.touchHandler(e, this);
 
         document.addEventListener("keydown", this._keydown, false);
         document.addEventListener("keyup", this._keyup, false);
@@ -260,7 +260,7 @@ class Paddle extends Brick {
         }
     }
 
-    touchMoveHandler(e, paddle) {
+    touchHandler(e, paddle) {
         const relativeX = e.changedTouches[e.changedTouches.length - 1].pageX
             - paddle._canvas.offsetLeft;
         paddle.x = paddle.normalizePosition(paddle, relativeX);
